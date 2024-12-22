@@ -1,32 +1,27 @@
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBMajWsh9tzKXpjAM1GSM2y3JteChEqGq0",
-  authDomain: "triviagame-e1b16.firebaseapp.com",
-  projectId: "triviagame-e1b16",
-  storageBucket: "triviagame-e1b16.appspot.com",
-  messagingSenderId: "139629419949",
-  appId: "1:139629419949:web:137578bd0c20f8cf179524",
-  measurementId: "G-07RFVX45W5",
-};
+// Replace this with your Google Sheets URL
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1ojxDWIZcAIq76xesGcGCyuaKWruDoNgtfDy-fE7NPGA/edit?usp=sharing";
 
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
+// Initialize Tabletop.js
+Tabletop.init({
+  key: SHEET_URL,
+  simpleSheet: true,
+  wanted: ["BaseData"], // Name of the sheet to pull data from
+  callback: (data, tabletop) => {
+    console.log("Data loaded from Google Sheets:", data);
+    window.sheetData = data; // Store the sheet data globally for later use
+  },
+});
 
-// Initialize Firestore
-const db = firebase.firestore();
-
-console.log("Firebase initialized!");
-console.log("App:", app);
-console.log("Firestore:", db);
+// Helper function to append data to the Google Sheet (Simulated)
+async function appendGameToSheet(game) {
+  console.log("Simulating adding game to sheet:", game);
+  // Simulate writing to Google Sheets using logs (you'd use an API in production)
+}
 
 // New Game Functionality
-document.getElementById('new-game').addEventListener('click', async (e) => {
+document.getElementById("new-game").addEventListener("click", async (e) => {
   e.preventDefault();
-  console.log("New Game button clicked!");
-
-  // Get the player's name
-  const playerName = document.getElementById('player-name').value;
-  console.log("Player name:", playerName);
+  const playerName = document.getElementById("player-name").value;
 
   if (!playerName) {
     alert("Please enter your name!");
@@ -36,66 +31,62 @@ document.getElementById('new-game').addEventListener('click', async (e) => {
   // Generate a unique game token
   const gameToken = Math.random().toString(36).substr(2, 6).toUpperCase();
 
-  try {
-    console.log("Attempting to write to Firestore...");
-    const gameRef = await db.collection('games').add({
-      player1Id: playerName,
-      currentRound: 1,
-      maxRounds: 6,
-      scores: { [playerName]: 0 },
-      gameState: "WAITING_FOR_PLAYER",
-      token: gameToken,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+  // Create a new game object
+  const newGame = {
+    id: Date.now().toString(),
+    token: gameToken,
+    player1Id: playerName,
+    player2Id: "",
+    currentRound: 1,
+    maxRounds: 6,
+    scores: JSON.stringify({ [playerName]: 0 }),
+    gameState: "WAITING_FOR_PLAYER",
+  };
 
-    console.log("Game created with ID:", gameRef.id);
-    alert(`New game created! Token: ${gameToken}`);
-  } catch (error) {
-    console.error("Error creating game:", error);
-    alert("Failed to create a game. Check the console for details.");
-  }
+  // Simulate adding data to the sheet
+  await appendGameToSheet(newGame);
+
+  // Display the token to the user
+  const output = document.getElementById("output");
+  output.innerHTML = `<p>Game created! Share this token with a friend: <strong>${gameToken}</strong></p>`;
 });
 
 // Join Game Functionality
-document.getElementById('join-game').addEventListener('click', async (e) => {
+document.getElementById("join-game").addEventListener("click", async (e) => {
   e.preventDefault();
-  console.log("Join Game button clicked!");
+  const playerName = document.getElementById("player-name").value;
 
-  const token = prompt("Enter game token:");
-  console.log("Game token entered:", token);
-
-  if (!token) {
-    alert("Please enter a valid game token!");
+  if (!playerName) {
+    alert("Please enter your name!");
     return;
   }
 
-  try {
-    const gameQuery = await db.collection('games').doc(token).get();
-
-    if (gameQuery.exists) {
-      const gameData = gameQuery.data();
-      console.log("Game data retrieved:", gameData);
-
-      const playerName = document.getElementById('player-name').value;
-      if (!playerName) {
-        alert("Please enter your name!");
-        return;
-      }
-
-      if (gameData.player2Id) {
-        alert("Game already has two players!");
-      } else {
-        await db.collection('games').doc(token).update({
-          player2Id: playerName,
-          gameState: "IN_PROGRESS",
-        });
-        alert("You joined the game!");
-      }
-    } else {
-      alert("Game not found!");
-    }
-  } catch (error) {
-    console.error("Error joining game:", error);
-    alert("Failed to join the game. Check the console for details.");
+  const token = prompt("Enter the game token:");
+  if (!token) {
+    alert("Please enter a valid token!");
+    return;
   }
+
+  // Find the game with the entered token
+  const game = window.sheetData.find((row) => row.token === token);
+
+  if (!game) {
+    alert("Game not found!");
+    return;
+  }
+
+  if (game.player2Id) {
+    alert("Game already has two players!");
+    return;
+  }
+
+  // Update the game data
+  game.player2Id = playerName;
+  game.gameState = "IN_PROGRESS";
+
+  console.log("Game updated:", game);
+
+  // Display the game state
+  const output = document.getElementById("output");
+  output.innerHTML = `<p>You joined the game! Game is now in progress.</p>`;
 });
