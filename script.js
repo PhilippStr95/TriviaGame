@@ -8,6 +8,12 @@ const firebaseConfig = {
   measurementId: "G-07RFVX45W5"
 };
 
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+
+// Initialize Firestore
+const db = firebase.firestore();
+
   document.getElementById('new-game').addEventListener('click', async (e) => {
     e.preventDefault();
     const playerName = document.getElementById('player-name').value;
