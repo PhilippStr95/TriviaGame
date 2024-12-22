@@ -1,13 +1,12 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyBMajWsh9tzKXpjAM1GSM2y3JteChEqGq0",
-    authDomain: "triviagame-e1b16.firebaseapp.com",
-    projectId: "triviagame-e1b16",
-    storageBucket: "triviagame-e1b16.firebasestorage.app",
-    messagingSenderId: "139629419949",
-    appId: "1:139629419949:web:137578bd0c20f8cf179524",
-    measurementId: "G-07RFVX45W5"
-  };
+  apiKey: "AIzaSyBMajWsh9tzKXpjAM1GSM2y3JteChEqGq0",
+  authDomain: "triviagame-e1b16.firebaseapp.com",
+  projectId: "triviagame-e1b16",
+  storageBucket: "triviagame-e1b16.firebasestorage.app",
+  messagingSenderId: "139629419949",
+  appId: "1:139629419949:web:137578bd0c20f8cf179524",
+  measurementId: "G-07RFVX45W5"
+};
 
   document.getElementById('new-game').addEventListener('click', async (e) => {
     e.preventDefault();
@@ -85,6 +84,40 @@ document.getElementById('new-game').addEventListener('click', async (e) => {
   } catch (error) {
     console.error("Error creating game:", error);
     alert("Something went wrong. Please try again.");
+  }
+});
+
+document.getElementById('new-game').addEventListener('click', async (e) => {
+  e.preventDefault();
+  console.log("New Game button clicked!");
+
+  const playerName = document.getElementById('player-name').value;
+  console.log("Player name:", playerName);
+
+  if (!playerName) {
+    alert("Please enter your name!");
+    return;
+  }
+
+  const gameToken = Math.random().toString(36).substr(2, 6).toUpperCase();
+
+  try {
+    console.log("Attempting to write to Firestore...");
+    const gameRef = await db.collection('games').add({
+      player1Id: playerName,
+      currentRound: 1,
+      maxRounds: 6,
+      scores: { [playerName]: 0 },
+      gameState: "WAITING_FOR_PLAYER",
+      token: gameToken,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log("Game created with ID:", gameRef.id);
+    alert(`New game created! Token: ${gameToken}`);
+  } catch (error) {
+    console.error("Error writing to Firestore:", error);
+    alert("Failed to create a game. Check the console for details.");
   }
 });
 
