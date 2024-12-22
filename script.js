@@ -50,4 +50,41 @@ const firebaseConfig = {
       alert("Game not found!");
     }
   });
-  
+
+// New Game Functionality
+document.getElementById('new-game').addEventListener('click', async (e) => {
+  e.preventDefault();
+
+  // Get the player's name
+  const playerName = document.getElementById('player-name').value;
+
+  // Check if the name is valid
+  if (!playerName) {
+    alert("Please enter your name!");
+    return;
+  }
+
+  // Generate a unique game token
+  const gameToken = Math.random().toString(36).substr(2, 6).toUpperCase();
+
+  try {
+    // Write to Firestore
+    const gameRef = await db.collection('games').add({
+      player1Id: playerName,
+      currentRound: 1,
+      maxRounds: 6,
+      scores: { [playerName]: 0 },
+      gameState: "WAITING_FOR_PLAYER",
+      token: gameToken,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Alert the user with their game token
+    alert(`New game created! Share this token with a friend to join: ${gameToken}`);
+    console.log(`Game ID: ${gameRef.id}`);
+  } catch (error) {
+    console.error("Error creating game:", error);
+    alert("Something went wrong. Please try again.");
+  }
+});
+
