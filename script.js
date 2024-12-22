@@ -1,3 +1,9 @@
+// Test Firebase Initialization
+console.log("Initializing Firebase...");
+console.log("App:", app);
+console.log("Firestore:", db);
+
+
 const firebaseConfig = {
   apiKey: "AIzaSyBMajWsh9tzKXpjAM1GSM2y3JteChEqGq0",
   authDomain: "triviagame-e1b16.firebaseapp.com",
